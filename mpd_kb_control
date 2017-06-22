@@ -1,0 +1,40 @@
+#!/bin/bash
+# -*- mode: sh-mode;
+
+CMD=$1
+if [ -z "$CMD" ]; then
+    echo "parameter expected: [play|next|prev|raise|lower|mute]"
+    exit
+fi
+
+if [ "$CMD" = "play" ]; then
+    STATUS=$(mpc | egrep "\[(playing|paused)\]" -o)
+    # I'm not strongly sure that "playing" and "paused" the only possible statuses
+    if [ "$STATUS" = "[playing]" ]; then
+        mpc pause
+    elif [ "$STATUS" = "[paused]" ]; then
+        mpc play
+    fi
+    exit
+elif [ "$CMD" = "next" ]; then
+    mpc next
+elif [ "$CMD" = "prev" ]; then
+    mpc prev
+elif [ "$CMD" = "raise" ]; then
+    mpc volume +1
+elif [ "$CMD" = "lower" ]; then
+    mpc volume -1
+elif [ "$CMD" = "mute" ]; then
+    MPD_VOLUME=$(mpc volume | egrep "[0-9]+" -o)
+    if [ ! -e ~/.mpd_volume_save ]; then        
+        echo "$MPD_VOLUME" > ~/.mpd_volume_save
+    fi
+    if [ "$MPD_VOLUME" != "0" ]; then
+        echo "$MPD_VOLUME" > ~/.mpd_volume_save
+        mpc volume 0
+    else
+        mpc volume "$(cat ~/.mpd_volume_save)"
+    fi   
+fi
+
+
